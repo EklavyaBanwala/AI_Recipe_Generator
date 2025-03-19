@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Recipe Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        #recipe {
+            white-space: pre-wrap;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .loading {
+            color: #6c757d;
+            font-style: italic;
+        }
+        .alert {
+            margin-top: 20px;
+        }
+        #imagePreview {
+            max-width: 300px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body class="p-4">
+    <div class="container">
+        <h1 class="mb-4 text-center">📸 AI Recipe Generator</h1>
+
+        <!-- Toggle between text/image input -->
+        <div class="mb-3">
+            <button class="btn btn-secondary" onclick="toggleInputMode()">
+                Switch to Image Upload
+            </button>
+        </div>
+
+        <!-- Text Input (default) -->
+        <div id="textInput">
+            <div class="mb-3">
+                <input type="text" id="ingredients" class="form-control"
+                       placeholder="Enter ingredients (e.g., chicken, tomatoes)">
+            </div>
+            <div class="mb-3">
+                <input type="text" id="cuisine" class="form-control"
+                       placeholder="Cuisine (optional)">
+            </div>
+        </div>
+
+        <!-- Image Upload (hidden initially) -->
+        <div id="imageInput" style="display: none;">
+            <div class="mb-3">
+                <input type="file" id="imageUpload" accept="image/*" class="form-control">
+                <img id="imagePreview" class="mt-2">
+            </div>
+        </div>
+
+        <button onclick="generateRecipe()" class="btn btn-primary w-100 mb-4">
+            Generate Recipe
+        </button>
+
+        <div id="recipe"></div>
+    </div>
+
+    <script>
+        // Toggle between text and image input
+        function toggleInputMode() {
+            const textInput = document.getElementById("textInput");
+            const imageInput = document.getElementById("imageInput");
+            textInput.style.display = textInput.style.display === "none" ? "block" : "none";
+            imageInput.style.display = imageInput.style.display === "none" ? "block" : "none";
+        }
+
+        // Handle image upload
+        document.getElementById("imageUpload").addEventListener("change", function(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById("imagePreview").src = e.target.result;
+                analyzeImage(file);
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Send image to backend for ingredient detection
+        async function analyzeImage(file) {
+            const recipeDiv = document.getElementById("recipe");
+            recipeDiv.innerHTML = '<div class="loading">Detecting ingredients... 🔍</div>';
+
+            try {
+                const formData = new FormData();
+                formData.append("image", file);
+
+                const response = await fetch("/process-image", {
+                    method: "POST",
+                    body: formData,
+                });
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);  // Handle backend errors
+                }
+
+                // Auto-fill ingredients and generate recipe
+                document.getElementById("ingredients").value = data.ingredients;
+                generateRecipe();
+
+            } catch (error) {
+                recipeDiv.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
+            }
+        }
+
+        // Generate recipe from ingredients
+        async function generateRecipe() {
+            const ingredients = document.getElementById("ingredients").value;
+            if (!ingredients || ingredients.toLowerCase().includes("no ingredients detected")) {
+                alert("Please enter valid ingredients!");
+                return;
+            }
+            const cuisine = document.getElementById("cuisine").value;
+            const recipeDiv = document.getElementById("recipe");
+
+            recipeDiv.innerHTML = '<div class="loading">Generating recipe... 🍳</div>';
+
+            try {
+                const response = await fetch("/generate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        ingredients: ingredients.trim(),
+                        cuisine: cuisine || "any"
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) throw new Error(data.error || "Failed to generate recipe");
+                if (!data.recipe) throw new Error("No recipe generated");
+
+                recipeDiv.innerHTML = data.recipe.replace(/\n/g, "<br>");
+
+            } catch (error) {
+                recipeDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

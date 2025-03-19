@@ -1,0 +1,27 @@
+# Virtual environment
+venv/
+.venv/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Environment variables (API keys)
+.env
+.env.local
+
+# IDE/Editor files
+.vscode/
+.idea/
+
+# Logs and databases
+*.log
+*.sqlite
+
+# macOS system files
+.DS_Store
+
+# Local development folders
+instance/
