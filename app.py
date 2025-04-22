@@ -4,15 +4,14 @@ from ai_recipe import detect_ingredients_from_image, generate_recipe
 import time
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS to avoid frontend-backend conflicts
-app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # Limit image uploads to 5MB
+CORS(app) 
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024 # max 5MB image upload size
 
-# Homepage: Serve the HTML template
 @app.route('/')
 def home():
     return render_template("index.html")
 
-# Handle image uploads and ingredient detection
+# uploading image and detecting ingredients
 @app.route('/process-image', methods=['POST'])
 def process_image():
     try:
@@ -23,10 +22,9 @@ def process_image():
         if image_file.filename == '':
             return jsonify({"error": "Empty filename"}), 400
 
-        # Detect ingredients from image
         ingredients = detect_ingredients_from_image(image_file.read())
 
-        # Validate ingredients
+        # ingredients check
         if "no ingredients detected" in ingredients.lower():
             return jsonify({"error": "No ingredients detected in the image."}), 400
         elif not ingredients:
@@ -37,7 +35,7 @@ def process_image():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Generate recipe from ingredients (text or image)
+# generating recipe using ingredients obtained
 @app.route('/generate', methods=['POST'])
 def generate_recipe_route():
     try:
