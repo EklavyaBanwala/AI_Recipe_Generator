@@ -28,14 +28,14 @@
     <div class="container">
         <h1 class="mb-4 text-center">📸 AI Recipe Generator</h1>
 
-        <!-- Toggle between text/image input -->
+        <!-- toggle between text and image input -->
         <div class="mb-3">
             <button class="btn btn-secondary" onclick="toggleInputMode()">
                 Switch to Image Upload
             </button>
         </div>
 
-        <!-- Text Input (default) -->
+        <!--input text-->
         <div id="textInput">
             <div class="mb-3">
                 <input type="text" id="ingredients" class="form-control"
@@ -47,7 +47,7 @@
             </div>
         </div>
 
-        <!-- Image Upload (hidden initially) -->
+        <!-- Uploading image -->
         <div id="imageInput" style="display: none;">
             <div class="mb-3">
                 <input type="file" id="imageUpload" accept="image/*" class="form-control">
@@ -63,7 +63,7 @@
     </div>
 
     <script>
-        // Toggle between text and image input
+        // toggle between text and image input
         function toggleInputMode() {
             const textInput = document.getElementById("textInput");
             const imageInput = document.getElementById("imageInput");
@@ -71,7 +71,7 @@
             imageInput.style.display = imageInput.style.display === "none" ? "block" : "none";
         }
 
-        // Handle image upload
+        // handle image upload
         document.getElementById("imageUpload").addEventListener("change", function(e) {
             const file = e.target.files[0];
             const reader = new FileReader();
@@ -82,7 +82,7 @@
             reader.readAsDataURL(file);
         });
 
-        // Send image to backend for ingredient detection
+        // sending image to backend for ingredient detection
         async function analyzeImage(file) {
             const recipeDiv = document.getElementById("recipe");
             recipeDiv.innerHTML = '<div class="loading">Detecting ingredients... 🔍</div>';
@@ -98,10 +98,10 @@
                 const data = await response.json();
 
                 if (data.error) {
-                    throw new Error(data.error);  // Handle backend errors
+                    throw new Error(data.error);  // handling backend errors
                 }
 
-                // Auto-fill ingredients and generate recipe
+                // auto fill ingredients and generate recipe
                 document.getElementById("ingredients").value = data.ingredients;
                 generateRecipe();
 
@@ -110,7 +110,7 @@
             }
         }
 
-        // Generate recipe from ingredients
+        // generating recipe from ingredients
         async function generateRecipe() {
             const ingredients = document.getElementById("ingredients").value;
             if (!ingredients || ingredients.toLowerCase().includes("no ingredients detected")) {
